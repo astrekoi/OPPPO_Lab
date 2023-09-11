@@ -8,9 +8,12 @@ import oppo.lab.first.model.TVSeries;
 import oppo.lab.first.model.CartoonMovie;
 import oppo.lab.first.model.FilmType;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public class FilmController {
     private final CircularLinkedList<Film> films = new CircularLinkedList<>();
@@ -26,20 +29,54 @@ public class FilmController {
                         try {
                             addFilm(parts[1]);
                         } catch (InvalidAnimationTypeException e) {
-                            System.err.println(e.getMessage());
+                            logError(e);
                         }
                     }
                     case "REM" -> removeFilms(parts[1]);
-                    case "PRINT" -> printFilms();
+                    case "PRINT" -> printFilms(fileName);
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void logError(Exception e) {
+        String timeStamp = new SimpleDateFormat("dd-HH-mm").format(new Date());
+        String logFileName = getWorkPath() + "logs\\" + timeStamp + ".txt";
+        try (FileWriter fw = new FileWriter(logFileName, true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter out = new PrintWriter(bw)) {
+            String errorTime = new SimpleDateFormat("HH:mm:ss").format(new Date());
+            String errorMessage = errorTime + " Ошибка: " + e.getMessage();
+            out.println(errorMessage);
+            out.flush();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void logError(String e) {
+        String timeStamp = new SimpleDateFormat("dd-HH-mm").format(new Date());
+        String logFileName = getWorkPath() + "logs\\" + timeStamp + ".txt";
+        try (FileWriter fw = new FileWriter(logFileName, true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter out = new PrintWriter(bw)) {
+            String errorTime = new SimpleDateFormat("HH:mm:ss").format(new Date());
+            String errorMessage = errorTime + " Ошибка: " + e;
+            out.println(errorMessage);
+            out.flush();
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 
     private void addFilm(String data) {
         String[] parts = data.split(", ");
+        if (parts.length < 2) {
+            logError("Ошибка в добавлении");
+            return;
+        }
         String type = parts[0];
         String name = parts[1];
         Film film = null;
@@ -91,12 +128,25 @@ public class FilmController {
         }
     }
 
-    private void printFilms() {
-        System.out.println("----PRINT----");
-        for (int i = 0; i < films.size(); i++) {
-            Film film = films.remove();
-            System.out.println(film);
-            films.add(film);
+    private void printFilms(String filename) {
+        String outputFileName = Paths.get(filename).getFileName().toString();
+        String outputPath = getWorkPath() + "output\\"  + outputFileName;
+        try (FileWriter fw = new FileWriter(outputPath, true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter out = new PrintWriter(bw)) {
+            String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+            out.println(currentTime + " PRINT:");
+            for (int i = 0; i < films.size(); i++) {
+                Film film = films.remove();
+                out.println(film);
+                films.add(film);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
+    }
+
+    private String getWorkPath() {
+        return  System.getProperty("user.dir") + "\\src\\main\\java\\oppo\\lab\\first\\";
     }
 }

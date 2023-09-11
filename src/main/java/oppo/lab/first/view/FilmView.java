@@ -9,6 +9,7 @@ import java.util.Scanner;
 public class FilmView {
     private final FilmController controller = new FilmController();
     private final Scanner scanner = new Scanner(System.in);
+    private boolean isChoice = false;
 
     public void run() {
         while (true) {
@@ -19,12 +20,15 @@ public class FilmView {
                 break;
             }
             controller.processFile(files[choice - 1].getAbsolutePath());
+            if (isChoice) {
+                break;
+            }
         }
     }
 
     private File[] displayFiles() {
         System.out.println("Файлы для обработки:");
-        String currentDir = new File("").getAbsolutePath();
+        String currentDir = System.getProperty("user.dir");
         File[] files = new File(currentDir + "\\src\\main\\java\\oppo\\lab\\first\\input").listFiles();
         if (files != null) {
             if (files.length == 0) {
@@ -55,6 +59,7 @@ public class FilmView {
             }
             try {
                 validateChoice(choice, files);
+                isChoice = true;
                 return choice;
             } catch (InvalidChoiceException e) {
                 System.out.println(e.getMessage());
