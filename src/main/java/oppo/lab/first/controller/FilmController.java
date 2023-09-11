@@ -32,7 +32,10 @@ public class FilmController {
                             logError(e);
                         }
                     }
-                    case "REM" -> removeFilms(parts[1]);
+                    case "REM" -> {
+                        if (parts.length > 2)
+                            removeFilms(parts[1]);
+                    }
                     case "PRINT" -> printFilms(fileName);
                 }
             }
@@ -74,7 +77,7 @@ public class FilmController {
     private void addFilm(String data) {
         String[] parts = data.split(", ");
         if (parts.length < 2) {
-            logError("Ошибка в добавлении");
+            logError("Invalid ADD");
             return;
         }
         String type = parts[0];
@@ -108,6 +111,10 @@ public class FilmController {
 
     private void removeFilms(String condition) {
         String[] parts = condition.split(" ");
+        if (parts.length < 2) {
+            logError("Invalid REM");
+            return;
+        }
         String field = parts[0];
         String operator = parts[1];
         String value = parts[2];
