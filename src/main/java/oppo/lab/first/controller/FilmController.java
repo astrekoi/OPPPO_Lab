@@ -2,11 +2,7 @@ package oppo.lab.first.controller;
 
 import oppo.lab.first.common.CircularLinkedList;
 import oppo.lab.first.exceptions.InvalidAnimationTypeException;
-import oppo.lab.first.model.Film;
-import oppo.lab.first.model.FeatureFilm;
-import oppo.lab.first.model.TVSeries;
-import oppo.lab.first.model.CartoonMovie;
-import oppo.lab.first.model.FilmType;
+import oppo.lab.first.model.*;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -33,8 +29,7 @@ public class FilmController {
                         }
                     }
                     case "REM" -> {
-                        if (parts.length > 2)
-                            removeFilms(parts[1]);
+                        if (parts.length > 2) removeFilms(parts[1]);
                     }
                     case "PRINT" -> printFilms(fileName);
                 }
@@ -74,39 +69,63 @@ public class FilmController {
         }
     }
 
-    private void addFilm(String data) {
-        String[] parts = data.split(", ");
-        if (parts.length < 2) {
-            logError("Invalid ADD");
-            return;
-        }
-        String type = parts[0];
-        String name = parts[1];
-        Film film = null;
-        if (type.equals(FilmType.FEATURE_FILM.getDisplayName())) {
-            FeatureFilm featureFilm = new FeatureFilm();
-            featureFilm.setName(name);
-            featureFilm.setDirectorName(parts[2]);
-            film = featureFilm;
-        } else if (type.equals(FilmType.TV_SERIES.getDisplayName())) {
-            TVSeries tvSeries = new TVSeries();
-            tvSeries.setName(name);
-            tvSeries.setDirectorName(parts[2]);
-            tvSeries.setNumberOfEpisodes(Integer.parseInt(parts[3]));
-            film = tvSeries;
-        } else if (type.equals(FilmType.CARTOON_MOVIE.getDisplayName())) {
-            CartoonMovie cartoonMovie = new CartoonMovie();
-            cartoonMovie.setName(name);
-            try {
-                cartoonMovie.setAnimationType(CartoonMovie.AnimationType.fromDisplayName(parts[2]));
-            } catch (IllegalArgumentException e) {
-                throw new InvalidAnimationTypeException("Invalid animation type: " + parts[2]);
-            }
-            film = cartoonMovie;
-        }
+    private void addFilm(String data) throws InvalidAnimationTypeException {
+        Film film = parseFilm(data);
         if (film != null) {
             films.add(film);
         }
+    }
+
+    private Film parseFilm(String data) throws InvalidAnimationTypeException {
+        String[] parts = data.split(", ");
+        final int TYPE_INDEX = 0;
+        if (parts.length < 2) {
+            logError("Invalid ADD");
+            return null;
+        }
+        String type = parts[TYPE_INDEX];
+        Film film = null;
+        if (type.equals(FilmType.FEATURE_FILM.getDisplayName())) {
+            film = addFeatureFilm(parts);
+        } else if (type.equals(FilmType.TV_SERIES.getDisplayName())) {
+            film = addTVSeries(parts);
+        } else if (type.equals(FilmType.CARTOON_MOVIE.getDisplayName())) {
+            film = addCartoonMovie(parts);
+        }
+        return film;
+    }
+
+    private FeatureFilm addFeatureFilm(String[] parts){
+        final int NAME_INDEX = 1;
+        final int DIRECTOR_NAME_INDEX = 2;
+        FeatureFilm featureFilm = new FeatureFilm();
+        featureFilm.setName(parts[NAME_INDEX]);
+        featureFilm.setDirectorName(parts[DIRECTOR_NAME_INDEX]);
+        return featureFilm;
+    }
+
+    private TVSeries addTVSeries(String[] parts){
+        final int NAME_INDEX = 1;
+        final int DIRECTOR_NAME_INDEX = 2;
+        final int NUMBER_OF_EPISODES_INDEX = 3;
+        TVSeries tvSeries = new TVSeries();
+        tvSeries.setName(parts[NAME_INDEX]);
+        tvSeries.setDirectorName(parts[DIRECTOR_NAME_INDEX]);
+        tvSeries.setNumberOfEpisodes(Integer.parseInt(parts[NUMBER_OF_EPISODES_INDEX]));
+        return tvSeries;
+    }
+
+    private CartoonMovie addCartoonMovie(String[] parts) throws InvalidAnimationTypeException{
+        final int NAME_INDEX = 1;
+        final int ANIMATION_TYPE_INDEX = 2;
+        CartoonMovie cartoonMovie = new CartoonMovie();
+        cartoonMovie.setName(parts[NAME_INDEX]);
+        try {
+            cartoonMovie.setAnimationType(CartoonMovie.AnimationType.fromDisplayName(parts[ANIMATION_TYPE_INDEX]));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidAnimationTypeException("Invalid animation type: " + parts[ANIMATION_TYPE_INDEX]);
+        }
+        return cartoonMovie;
     }
 
     private void removeFilms(String condition) {
@@ -137,7 +156,7 @@ public class FilmController {
 
     private void printFilms(String filename) {
         String outputFileName = Paths.get(filename).getFileName().toString();
-        String outputPath = getWorkPath() + "output\\"  + outputFileName;
+        String outputPath = getWorkPath() + "output\\" + outputFileName;
         try (FileWriter fw = new FileWriter(outputPath, true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
@@ -154,6 +173,6 @@ public class FilmController {
     }
 
     private String getWorkPath() {
-        return  System.getProperty("user.dir") + "\\src\\main\\java\\oppo\\lab\\first\\";
+        return System.getProperty("user.dir") + "\\src\\main\\java\\oppo\\lab\\first\\";
     }
 }
