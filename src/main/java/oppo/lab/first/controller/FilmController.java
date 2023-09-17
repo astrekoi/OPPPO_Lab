@@ -12,10 +12,24 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class FilmController {
-    private final CircularLinkedList<Film> films = new CircularLinkedList<>();
+    private final CircularLinkedList<Film> films;
+    private BufferedReader reader;
+    private String workPath;
+
+    public FilmController(CircularLinkedList<Film> films) {
+        this.films = films;
+    }
+
+    public FilmController() {
+        this.films = new CircularLinkedList<>();
+    }
+
+    public void setReader(BufferedReader reader) {
+        this.reader = reader;
+    }
 
     public void processFile(String fileName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+        try {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(" ", 2);
@@ -41,7 +55,9 @@ public class FilmController {
 
     private void logError(Exception e) {
         String timeStamp = new SimpleDateFormat("dd-HH-mm").format(new Date());
-        String logFileName = getWorkPath() + "logs\\" + timeStamp + ".txt";
+        String logFileName = this.workPath == null || this.workPath.isEmpty() ?
+                useDefaultWorkPath() + "logs\\" + timeStamp + ".txt" :
+                getWorkPath() + "logs\\" + timeStamp + ".txt";
         try (FileWriter fw = new FileWriter(logFileName, true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
@@ -56,7 +72,9 @@ public class FilmController {
 
     private void logError(String e) {
         String timeStamp = new SimpleDateFormat("dd-HH-mm").format(new Date());
-        String logFileName = getWorkPath() + "logs\\" + timeStamp + ".txt";
+        String logFileName = this.workPath == null || this.workPath.isEmpty() ?
+                useDefaultWorkPath() + "logs\\" + timeStamp + ".txt" :
+                getWorkPath() + "logs\\" + timeStamp + ".txt";
         try (FileWriter fw = new FileWriter(logFileName, true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
@@ -69,7 +87,7 @@ public class FilmController {
         }
     }
 
-    private void addFilm(String data) throws InvalidAnimationTypeException {
+    public void addFilm(String data) throws InvalidAnimationTypeException {
         Film film = parseFilm(data);
         if (film != null) {
             films.add(film);
@@ -95,7 +113,7 @@ public class FilmController {
         return film;
     }
 
-    private FeatureFilm addFeatureFilm(String[] parts){
+    private FeatureFilm addFeatureFilm(String[] parts) {
         final int NAME_INDEX = 1;
         final int DIRECTOR_NAME_INDEX = 2;
         FeatureFilm featureFilm = new FeatureFilm();
@@ -104,7 +122,7 @@ public class FilmController {
         return featureFilm;
     }
 
-    private TVSeries addTVSeries(String[] parts){
+    private TVSeries addTVSeries(String[] parts) {
         final int NAME_INDEX = 1;
         final int DIRECTOR_NAME_INDEX = 2;
         final int NUMBER_OF_EPISODES_INDEX = 3;
@@ -115,7 +133,7 @@ public class FilmController {
         return tvSeries;
     }
 
-    private CartoonMovie addCartoonMovie(String[] parts) throws InvalidAnimationTypeException{
+    private CartoonMovie addCartoonMovie(String[] parts) throws InvalidAnimationTypeException {
         final int NAME_INDEX = 1;
         final int ANIMATION_TYPE_INDEX = 2;
         CartoonMovie cartoonMovie = new CartoonMovie();
@@ -128,7 +146,7 @@ public class FilmController {
         return cartoonMovie;
     }
 
-    private void removeFilms(String condition) {
+    public void removeFilms(String condition) {
         String[] parts = condition.split(" ");
         if (parts.length < 2) {
             logError("Invalid REM");
@@ -154,9 +172,11 @@ public class FilmController {
         }
     }
 
-    private void printFilms(String filename) {
-        String outputFileName = Paths.get(filename).getFileName().toString();
-        String outputPath = getWorkPath() + "output\\" + outputFileName;
+    private void printFilms(String fileName) {
+        String outputFileName = fileName;
+        String outputPath = this.workPath == null || this.workPath.isEmpty() ?
+                useDefaultWorkPath() + "output\\" + outputFileName :
+                getWorkPath() + "output\\" + outputFileName;
         try (FileWriter fw = new FileWriter(outputPath, true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
@@ -172,7 +192,15 @@ public class FilmController {
         }
     }
 
-    private String getWorkPath() {
+    public String getWorkPath() {
+        return System.getProperty("user.dir") + workPath;
+    }
+
+    public void setWorkPath(String path) {
+        this.workPath = path;
+    }
+
+    public String useDefaultWorkPath(){
         return System.getProperty("user.dir") + "\\src\\main\\java\\oppo\\lab\\first\\";
     }
 }

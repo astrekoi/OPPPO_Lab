@@ -1,7 +1,9 @@
 package oppo.lab.first;
 
-import oppo.lab.first.model.CartoonMovie;
 import oppo.lab.first.view.FilmView;
+import oppo.lab.first.controller.FilmController;
+
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
@@ -15,7 +17,9 @@ public class Main {
         System.out.println("Номер контейнера: " + y);
         System.out.println("1. Однонаправленный кольцевой список");
 
-        FilmView filmView = new FilmView();
+        FilmController controller = new FilmController();
+        Scanner scanner = new Scanner(System.in);
+        FilmView filmView = new FilmView(controller, scanner);
         filmView.run();
     }
 }

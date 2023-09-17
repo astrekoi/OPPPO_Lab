@@ -3,13 +3,21 @@ package oppo.lab.first.view;
 import oppo.lab.first.controller.FilmController;
 import oppo.lab.first.exceptions.InvalidChoiceException;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.Scanner;
 
 public class FilmView {
-    private final FilmController controller = new FilmController();
-    private final Scanner scanner = new Scanner(System.in);
+    private final FilmController controller;
+    private final Scanner scanner;
     private boolean isChoice = false;
+
+    public FilmView(FilmController controller, Scanner scanner) {
+        this.controller = controller;
+        this.scanner = scanner;
+    }
 
     public void run() {
         while (true) {
@@ -19,7 +27,13 @@ public class FilmView {
             if (choice == 0) {
                 break;
             }
-            controller.processFile(files[choice - 1].getAbsolutePath());
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(files[choice - 1].getAbsolutePath()));
+                controller.setReader(reader);
+                controller.processFile(files[choice - 1].getName());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
             if (isChoice) {
                 break;
             }
