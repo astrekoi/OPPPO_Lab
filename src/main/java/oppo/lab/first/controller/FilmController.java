@@ -5,7 +5,6 @@ import oppo.lab.first.exceptions.InvalidAnimationTypeException;
 import oppo.lab.first.model.*;
 
 import java.io.*;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
