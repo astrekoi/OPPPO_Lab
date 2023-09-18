@@ -1,5 +1,6 @@
 import oppo.lab.first.common.CircularLinkedList;
 import oppo.lab.first.controller.FilmController;
+import oppo.lab.first.exceptions.InvalidAnimationTypeException;
 import oppo.lab.first.model.Film;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -56,5 +58,26 @@ public class FilmControllerTest {
         String outputContent = new String(Files.readAllBytes(Paths.get(outputPath)));
         assertTrue(outputContent.contains("FeatureFilm{name='Тест Уыв', directorName='Артем Куров'}"), "Output file does not contain expected content");
         assertTrue(outputContent.contains("TVSeries{name='Богема', directorName='Контроль Вильсов', numberOfEpisodes=5}"), "Output file does not contain expected content");
+    }
+
+    @Test
+    public void testAddFilm() throws InvalidAnimationTypeException {
+        CircularLinkedList<Film> films = new CircularLinkedList<>();
+        FilmController controller = new FilmController(films);
+
+        controller.addFilm("Игровой фильм, Тест Уыв, Артем Куров");
+
+        assertFalse(films.size() == 0, "Films list should not be empty after adding a film");
+    }
+
+    @Test
+    public void testRemoveFilms() {
+        CircularLinkedList<Film> films = new CircularLinkedList<>();
+        FilmController controller = new FilmController(films);
+
+        controller.addFilm("Игровой фильм, Тест Уыв, Артем Куров");
+        controller.removeFilms("название has Уыв");
+
+        assertTrue(films.size() == 0, "Films list should be empty after removing the film");
     }
 }
